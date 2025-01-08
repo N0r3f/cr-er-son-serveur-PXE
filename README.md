@@ -37,7 +37,7 @@ sudo nano /etc/dnsmasq.conf
 3. Ajoutez les lignes suivantes :
 
 ```bash
-interface=eth0
+port=69
 dhcp-range=192.168.1.50,192.168.1.150,12h
 dhcp-boot=pxelinux.0
 enable-tftp
@@ -45,6 +45,38 @@ tftp-root=/tftpboot
 ```
 
 Assurez-vous de remplacer `eth0` par le nom de votre interface réseau et ajustez la plage DHCP selon votre configuration réseau.
+
+NB : Pensez à vérifier que votre adresse ip de carte réseau filaire (ethernet) soit bien en 192.168.1.49 par exemple via network-manager (outil graphique) ou via /etc/network/interfaces comme suit :
+
+```bash
+sudo nano /etc/network/interfaces
+```
+
+Avec les arguments suivants :
+
+```bash
+auto eth0 # remplacer eth0 par le nom de votre interface réseau filaire à chaque occurence
+iface eth0 inet static
+    address 192.168.1.49
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+```
+
+Pour connaître le nom de votre interface réseau filaire, vous pouvez utiliser la commande `ifconfig` le résultat devrait ressembler à celui-ci :
+
+```bash
+root@PXE:~# ifconfig
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.1.49  netmask 255.255.255.0  broadcast 192.168.1.255
+        inet6 fe80::be24:11ff:fee9:9b8  prefixlen 64  scopeid 0x20<link>
+        ether bc:24:11:e9:09:b8  txqueuelen 1000  (Ethernet)
+        RX packets 1369771  bytes 111933946 (111.9 MB)
+        RX errors 0  dropped 49007  overruns 0  frame 0
+        TX packets 81393  bytes 4120418 (4.1 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+Ici, `eth0` est le nom de notre interface réseau filaire.
 
 ## Étape 3 : Préparation du répertoire TFTP
 
@@ -137,7 +169,7 @@ Ce tutoriel fournit une configuration de base pour un serveur PXE utilisant dnsm
 
 ## Étape 7 : Récupération d'un iso pour démarrer en live
 
-1. Rendez-vous à l'adresse suivante : https://store.lacapsule.org/LACAPSULE/TOOLBOX/TOOLBOX_amd64.iso
+1. Rendez-vous à l'adresse suivante : [https://store.lacapsule.org/ISO/TOOLBOX-amd64.iso](https://store.lacapsule.org/ISO/TOOLBOX-amd64.iso)
 2. Une fois le téléchargement terminé, monter l'iso. Dans notre cas, il se trouve dans les Téléchargements : 
 3. Créez un répertoire qui servira de point de montage pour l'image ISO :
 
@@ -148,7 +180,7 @@ sudo mkdir /mnt/iso
 4. Utilisez la commande `mount` avec les options appropriées pour monter l'image ISO :
 
 ```bash
-sudo mount -t iso9660 -o loop '/home/$USER/Téléchargements/TOOLBOX_amd64.iso' /mnt/iso  
+sudo mount -t iso9660 -o loop '/home/$USER/Téléchargements/TOOLBOX-amd64.iso' /mnt/iso  
 ```
 
 5. Une fois l'image ISO montée, vous pouvez accéder à son contenu en naviguant vers le point de montage :
@@ -185,15 +217,11 @@ sudo cp -r /mnt/iso/* /tftpboot/TOOLBOX
 
 ​	Nous pouvons à présent ajouter une entrée de menu dans notre fichier default afin de permettre un boot sur le système contenu dans l'iso.
 
-
-
 ​	Lorsque vous avez terminé d'utiliser l'image ***ISO***, vous pouvez la démonter :
 
 ```bash
 sudo umount /mnt/iso
 ```
-
-
 
 ## Étape 8 : Configuration du partage NFS
 
